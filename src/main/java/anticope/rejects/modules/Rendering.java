@@ -1,15 +1,26 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import net.minecraft.client.gl.PostEffectPipeline;
+import com.mojang.serialization.Codec;
 import net.minecraft.client.gl.PostEffectProcessor;
+import net.minecraft.client.gl.ShaderLoader;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
+
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Set;
 
 public class Rendering extends Module {
 
@@ -107,11 +118,33 @@ public class Rendering extends Module {
         else if (s == Shader.Scanline) name = "scan_pincushion";
         else name = s.toString().toLowerCase();
         Identifier shaderID = Identifier.of(String.format("shaders/post/%s.json", name));
+
         try {
-            PostEffectProcessor shader = new PostEffectProcessor(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), shaderID);
+            PostEffectPipeline pipeline = parse(mc.getResourceManager(), shaderID);
+
+            Set<Identifier> availableExternalTargets = Set.of(PostEffectProcessor.MAIN);
+            PostEffectProcessor shader = PostEffectProcessor.parseEffect(
+                    pipeline,
+                    mc.getTextureManager(),
+                    mc.getShaderLoader(),
+                    availableExternalTargets
+            );
             this.shader = shader;
-        } catch (IOException e) {
-            this.shader = null;
+        } catch (IOException | ShaderLoader.LoadException e) {
+            e.printStackTrace();
+            this.shader = null; // エラー時は null に設定
+        }
+    }
+
+    public static PostEffectPipeline parse(ResourceManager resourceManager, Identifier id) throws IOException {
+        Resource resource = resourceManager.getResource(id)
+                .orElseThrow(() -> new IOException("Resource not found: " + id));
+
+        try (InputStreamReader reader = new InputStreamReader(resource.getInputStream())) {
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+
+            return PostEffectPipeline.CODEC.parse(JsonOps.INSTANCE, jsonElement)
+                    .getOrThrow(errorMsg -> new RuntimeException("Failed to parse PostEffectPipeline: " + errorMsg));
         }
     }
 

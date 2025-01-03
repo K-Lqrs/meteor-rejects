@@ -8,7 +8,6 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ElytraItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
@@ -72,7 +71,7 @@ public class ExtraElytra extends Module {
         if (chest.getItem() != Items.ELYTRA)
             return;
 
-        if (mc.player.isFallFlying()) {
+        if (isPlayerGlidingWithElytra()) {
             if (stopInWater.get() && mc.player.isTouchingWater()) {
                 sendStartStopPacket();
                 return;
@@ -83,8 +82,14 @@ public class ExtraElytra extends Module {
             return;
         }
 
-        if (ElytraItem.isUsable(chest) && mc.options.jumpKey.isPressed())
+        if (chest.isDamageable() && chest.getDamage() < chest.getMaxDamage() && mc.options.jumpKey.isPressed())
             doInstantFly();
+    }
+
+    private boolean isPlayerGlidingWithElytra() {
+        Vec3d velocity = mc.player.getVelocity();
+        return !mc.player.isOnGround() && mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA
+                && velocity.y < 0 && (Math.abs(velocity.x) > 0.01 || Math.abs(velocity.z) > 0.01);
     }
 
     private void sendStartStopPacket() {

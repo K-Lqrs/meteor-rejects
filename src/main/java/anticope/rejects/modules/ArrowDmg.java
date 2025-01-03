@@ -54,12 +54,13 @@ public class ArrowDmg extends Module {
 
         for (int i = 0; i < packets.get() / 2; i++) {
             p.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(x,
-                    y - 1e-10, z, true));
+                    y - 1e-10, z, true, true));
             p.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(x,
-                    y + 1e-10, z, false));
+                    y + 1e-10, z, false, false));
         }
     }
 
+    // what just happened to him
     private boolean isValidItem(Item item) {
         return tridents.get() && item == Items.TRIDENT || item == Items.BOW;
     }

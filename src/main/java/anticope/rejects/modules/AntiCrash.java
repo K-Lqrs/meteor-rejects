@@ -29,30 +29,27 @@ public class AntiCrash extends Module {
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event) {
         if (event.packet instanceof ExplosionS2CPacket packet) {
-            if (/* outside of world */ packet.getX() > 30_000_000 || packet.getY() > 30_000_000 || packet.getZ() > 30_000_000 || packet.getX() < -30_000_000 || packet.getY() < -30_000_000 || packet.getZ() < -30_000_000 ||
-                    // power too high
-                    packet.getRadius() > 1000 ||
-                    // too many blocks
-                    packet.getAffectedBlocks().size() > 100_000 ||
-                    // too much knockback
-                    packet.getPlayerVelocityX() > 30_000_000 || packet.getPlayerVelocityY() > 30_000_000 || packet.getPlayerVelocityZ() > 30_000_000
-                    // knockback can be negative?
-                    || packet.getPlayerVelocityX() < -30_000_000 || packet.getPlayerVelocityY() < -30_000_000 || packet.getPlayerVelocityZ() < -30_000_000
-            ) cancel(event);
-        } else if (event.packet instanceof ParticleS2CPacket packet) {
-            // too many particles
-            if (packet.getCount() > 100_000) cancel(event);
-        } else if (event.packet instanceof PlayerPositionLookS2CPacket packet) {
-            // out of world movement
-            if (packet.getX() > 30_000_000 || packet.getY() > 30_000_000 || packet.getZ() > 30_000_000 || packet.getX() < -30_000_000 || packet.getY() < -30_000_000 || packet.getZ() < -30_000_000)
+            if (packet.center().x > 30_000_000 || packet.center().y > 30_000_000 || packet.center().z > 30_000_000 ||
+                    packet.center().x < -30_000_000 || packet.center().y < -30_000_000 || packet.center().z < -30_000_000) {
                 cancel(event);
+            }
+        } else if (event.packet instanceof ParticleS2CPacket packet) {
+            if (packet.getCount() > 100_000) { // 新しい方法でパーティクル数を確認
+                cancel(event);
+            }
+        } else if (event.packet instanceof PlayerPositionLookS2CPacket packet) {
+            if (packet.change().position().x > 30_000_000 || packet.change().position().y > 30_000_000 || packet.change().position().z > 30_000_000 ||
+                    packet.change().position().x < -30_000_000 || packet.change().position().y < -30_000_000 || packet.change().position().z < -30_000_000) {
+                cancel(event);
+            }
         } else if (event.packet instanceof EntityVelocityUpdateS2CPacket packet) {
-            // velocity
-            if (packet.getVelocityX() > 30_000_000 || packet.getVelocityY() > 30_000_000 || packet.getVelocityZ() > 30_000_000
-                    || packet.getVelocityX() < -30_000_000 || packet.getVelocityY() < -30_000_000 || packet.getVelocityZ() < -30_000_000
-            ) cancel(event);
+            if (packet.getVelocityX() > 30_000_000 || packet.getVelocityY() > 30_000_000 || packet.getVelocityY() > 30_000_000 ||
+                    packet.getVelocityX() < -30_000_000 || packet.getVelocityY() < -30_000_000 || packet.getVelocityZ() < -30_000_000) {
+                cancel(event);
+            }
         }
     }
+
 
     private void cancel(PacketEvent.Receive event) {
         if (log.get()) warning("Server attempts to crash you");

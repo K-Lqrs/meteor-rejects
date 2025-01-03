@@ -36,7 +36,6 @@ public class MeteorRejectsAddon extends MeteorAddon {
         modules.add(new AntiVanish());
         modules.add(new ArrowDmg());
         modules.add(new AutoBedTrap());
-        modules.add(new AutoCraft());
         modules.add(new AutoExtinguish());
         modules.add(new AutoFarm());
         modules.add(new AutoGrind());
@@ -79,7 +78,6 @@ public class MeteorRejectsAddon extends MeteorAddon {
         modules.add(new RoboWalk());
         modules.add(new ShieldBypass());
         modules.add(new SilentDisconnect());
-        modules.add(new SkeletonESP());
         modules.add(new SoundLocator());
         modules.add(new TreeAura());
         modules.add(new VehicleOneHit());
